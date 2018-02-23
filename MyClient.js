@@ -13,38 +13,30 @@ class MyClient {
 		this.getToken().then((token) => {
 			this.token = token;
 			this.client.login(this.token);
+		}).catch((err) =>{
+			process.exit();
 		});
 	}
 
-	getToken(){
+	getToken() {
 		return new Promise((resolve, reject) => {
 			fs.readFile(pathProperties, "utf8", (err, data) => {
 				if (err)
 					reject(err);
 
-				let token = null;
-				let list = data.trim().split(":")
-				token = list[1].trim()
-
-				resolve(token);
+				try{
+					let token = null;
+					let list = data.trim().split(":");
+					token = list[1].trim();
+					resolve(token);
+				}
+				catch(err){
+					console.log("No token setted ! Please login with the option --login or --token");
+					reject();
+				}
 			})
 		});
-		
-	}
 
-	static setToken(token){
-		return new Promise((resolve, reject) => {
-			if(token.length != 59)
-				reject('Bad token');
-
-			let data = "token: " + token;
-			fs.writeFile(pathProperties, data, "utf8", (err) => {
-				if(err)
-					reject(err);
-
-				resolve();
-			})
-		});
 	}
 
 	onReady() {
@@ -73,16 +65,18 @@ class MyClient {
 			if (isNullOrUndefined(path)) {
 				resolve(null);
 			}
-			fs.stat(path, (err, result) => {
-				if (result) {
-					resolve(new discord.Attachment(path));
-				}
-				else {
-					console.log("Le fichier n'existe pas ")
-					resolve(null);
-					process.exit()
-				}
-			})
+			else {
+				fs.stat(path, (err, result) => {
+					if (result) {
+						resolve(new discord.Attachment(path));
+					}
+					else {
+						console.log("Le fichier n'existe pas ")
+						resolve(null);
+						process.exit()
+					}
+				})
+			}
 		});
 	}
 }

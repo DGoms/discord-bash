@@ -5,7 +5,7 @@ const theFunction = require("./function")
 const path = require("path")
 const fs = require("fs")
 const MyClient = require("./MyClient").MyClient;
-
+const tools = require('./tools');
 
 program
 	.version('1.0.0')
@@ -15,7 +15,8 @@ program
 	.option('-s --sendmessage', 'send message , need -m and -w like( -w \"servername chan1 chan2, servername2 chan1 chan2')
 	.option('-p --prompt', 'show prompt to send message')
 	.option('-f --file [value]', 'attach file to the message (use with -p or -s)')
-	.option('-t --token [value]', 'set the token account to use')
+	.option('--token [value]', 'set the token account to use')
+	.option('--login', 'set the account to use')
 	.parse(process.argv)
 
 startTestCommand();
@@ -29,13 +30,16 @@ async function startTestCommand() {
 	else if (program.prompt) {
 		theFunction.sendMessage(program.file)
 	}
+	else if(program.login){
+		tools.login();
+	}
 	else if(program.token){
 		if(typeof program.token === "boolean"){
 			console.log("No token passed");
 			process.exit();
 		}
 
-		MyClient.setToken(program.token).then(()=>{
+		tools.setToken(program.token).then(()=>{
 			console.log("Token setted !");
 			process.exit();
 		}).catch((err)=>{
