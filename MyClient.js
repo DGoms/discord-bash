@@ -3,7 +3,7 @@ const isNullOrUndefined = require('util').isNullOrUndefined;
 const discord = require('discord.js');
 const fs = require('fs')
 
-const pathProperties = "properties.properties"
+const pathProperties = __dirname+"/properties.properties"
 
 class MyClient {
 	constructor() {
@@ -79,6 +79,10 @@ class MyClient {
 				})
 			}
 		});
+	}
+	isAdmin()
+	{
+		return new discord.Permission(discord.Permissions.FLAGS.ADMINISTRATOR)
 	}
 }
 
