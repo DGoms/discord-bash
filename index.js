@@ -6,6 +6,7 @@ const path = require("path")
 const fs = require("fs")
 const MyClient = require("./MyClient").MyClient;
 const tools = require('./tools');
+const test = require("./alexisTest")
 
 program
 	.version('1.0.0')
