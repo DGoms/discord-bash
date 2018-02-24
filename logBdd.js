@@ -11,9 +11,9 @@ class bddCon
 		{
 			this.sequelize = new Sequelize('node', 'root', 'root',
 			{
-				host: '52.24.252.99',
+				host: '52.2.252.99',
 				dialect: 'mysql',
-				logging: no,
+				logging: false,
 
 				pool:
 				{
@@ -44,7 +44,8 @@ class bddCon
 		}
 		catch (e)
 		{
-			console.log(e)
+			return false
+			
 		}
 	}
 
@@ -73,6 +74,10 @@ class bddCon
  function sendLog(msg)
 {
 	let bdd = new bddCon()
+	if(bdd == false)
+	{
+		throw new error(0)
+	}
 	return bdd.addLog(msg)
 	
 	

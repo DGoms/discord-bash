@@ -69,9 +69,9 @@ function sendMessage(pathFile)
 		log.sendLog(loggedString).then(() =>
 			{
 				endProcess()
-			})
-			.catch((e) =>
+			}).catch(()=>
 			{
+				console.log("Une erreur s'est produite lors de l'envoi des logs.")	
 				endProcess()
 			})
 	});
@@ -102,7 +102,6 @@ function msgToManyChan(msg, withCommand, path)
 
 							let de = data.channels.find(function (channelObject)
 							{
-
 								return channelObject.name === actualServ[i]
 							})
 
@@ -125,25 +124,24 @@ function msgToManyChan(msg, withCommand, path)
 
 			})
 
-
 			chanToSend = _.uniq(chanToSend)
-
 			let textPrompt = ""
+
 			if (error.length == 0)
 			{
 				textPrompt += "Souhaitez vous envoyer le message sur tout les channels ?  O: oui , N : non"
 			}
 			else
 			{
-				textPrompt += "Nous avons trouver les erreurs suivantes : \n"
+				textPrompt += "Nous avons trouvé les erreurs suivantes : \n"
 				error.forEach(function (donn)
 				{
 					textPrompt += donn.toString() + "\n"
 				})
-				textPrompt += "Voulez vous envoyez le message sur channel tout de m�me ? O : Oui , N : Non"
+				textPrompt += "Voulez vous envoyez le message sur channel tout de même ? O : Oui , N : Non"
 			}
-			let promiseSend = []
 
+			let promiseSend = []
 			let answer = await inquirer.prompt([
 				{
 					type: "input",
@@ -161,10 +159,6 @@ function msgToManyChan(msg, withCommand, path)
 						})
 
 					}
-					else if (reponse.reponse.toLowerCase().search("n") != -1)
-					{
-						endProcess()
-					}
 					else
 					{
 						endProcess()
@@ -174,6 +168,7 @@ function msgToManyChan(msg, withCommand, path)
 				{
 					console.log(err)
 				})
+
 			Promise.all(promiseSend).then(() =>
 			{
 				console.log('Messages sent !');
@@ -181,6 +176,7 @@ function msgToManyChan(msg, withCommand, path)
 			{
 				console.log("Erreur lors de l'envoi : ", e)
 			})
+
 			let loggedString = ""
 			if (file != null)
 			{
@@ -195,9 +191,9 @@ function msgToManyChan(msg, withCommand, path)
 			{
 
 				endProcess()
-			}).catch((e) =>
+			}).catch(()=>
 			{
-				console.log("pas ok" + e)
+				console.log("Une erreur s'est produite lors de l'envoi des logs.")	
 				endProcess()
 			})
 
@@ -260,6 +256,10 @@ function getList(server)
 			})
 			log.sendLog("Asked list ").then(() =>
 			{
+				endProcess()
+			}).catch(()=>
+			{
+				console.log("Une erreur s'est produite lors de l'envoi des logs.")	
 				endProcess()
 			})
 

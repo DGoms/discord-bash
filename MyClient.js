@@ -22,6 +22,7 @@ class MyClient {
 		return new Promise((resolve, reject) => {
 			fs.readFile(pathProperties, "utf8", (err, data) => {
 				if (err)
+				
 					reject(err);
 
 				try{
@@ -31,7 +32,7 @@ class MyClient {
 					resolve(token);
 				}
 				catch(err){
-					console.log("No token setted ! Please login with the option --login or --token");
+					console.log("No token setted ! Please login with the option --login or --token" , err);
 					reject();
 				}
 			})
