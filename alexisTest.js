@@ -1,5 +1,7 @@
 const myClient = require('./MyClient').myClient;
 const inquirer = require("inquirer")
+const discord = require("discord.js")
+const log = require("./logBdd")
 let client = null
 let objActualServer = null
 let loggedAccount
@@ -22,7 +24,7 @@ async function chooseServer()
     let choice = []
     await client.guilds.forEach((data)=>
     {
-        if(data.ownerID  == loggedAccount.id)
+        if( data.ownerID  == loggedAccount.id )
         {
             choice.push({
                 name: data.name,
@@ -30,28 +32,29 @@ async function chooseServer()
             })
         }
     })
-    if(choice.length == 0)
-    {
+        if(choice.length == 0)
+        {
         console.log("Il n'y a aucun serveur ou vous possèdez les droits suffisants pour effectuer les actions proposé")
         endProcess()
-    }
-    else
-    {
-        await ask([{
-            type: "list",
-            message: txt,
-            name: "selectServer",
-            choices : choice
-        }])
-
-        .then((chanSelected)=>
+        }
+        else
         {
-            objActualServer.server = chanSelected.selectServer
-            chooseWhatToHandle(chanSelected.selectServer)
+            await ask([{
+                type: "list",
+                message: txt,
+                name: "selectServer",
+                choices : choice
+            }])
         
-        }).catch((e)=>{console.log(e)})
-    }
+            .then((chanSelected)=>
+            {
+                objActualServer.server = chanSelected.selectServer
+                chooseWhatToHandle(chanSelected.selectServer)
+            
+            }).catch((e)=>{console.log(e)})
+        }
 }
+
 
 async function chooseWhatToHandle() // this function take a server as parameter and return what the user whant to do (user management , or channel management)
 {
@@ -99,23 +102,21 @@ async function manageUser()
 {
     let server = objActualServer.server
     let txt = "Choissisez le membres que vous souhaitez manager : "
-    
+
     let choice = [{
         name:"Retournez au menu précédent",
         value:-1
     }]
     choice.push(returnObjectLeave())
-
     server.members.forEach((usr)=>
     {
         let actualUser = usr.user
-        choice.push({
+        choice.unshift({
             name: actualUser.username,
             value:actualUser
-        })
-        
+        })   
     })
-
+    
     await ask({
         type:"list",
         name:"selectedUser",
@@ -144,6 +145,9 @@ async function manageSingleUser(user)
 {
     let choice = [
         {
+            
+        },
+        {
             name: "Bannir",
             value:"ban"    
         },
@@ -157,10 +161,10 @@ async function manageSingleUser(user)
         },
         {
             name:"Retournez à la liste des membres.",
-            value:"backMemberList"
+            value:-1
         }
     ]
-    choice.push(returnObjectLeave)
+    choice.push(returnObjectLeave())
 
     await ask(
         {
@@ -185,7 +189,7 @@ async function manageSingleUser(user)
         }
         else if(data.selectedChoices == "revokRight")
         {
-            revokRights(user)// todo
+            revokRights(user)
         }
         else if(data.selectedChoices == "addRight")
         {
@@ -270,7 +274,6 @@ async function revokRights(user)
                 }
                 else
                 {
-                    
                     doRevokRighs(member , answer.answer)
                     manageSingleUser(user)
                 }
@@ -289,9 +292,12 @@ async function getRolebYiD(id)
     
         
 }
-function doRevokRighs(user , idRole)
+async function doRevokRighs(user , role)
 {
-    user.removeRole(idRole)
+    user.removeRole(role).then(()=>
+    {
+        log.sendLog(loggedAccount.username , "Suppression du Rôle : " + role + " Pour l'utilisateur : " + user.nickname )
+    })
 }
 async function ask(obj)
 {
@@ -313,13 +319,6 @@ class actualServer
     {
         this.server = null
     }
-}
-function getAllMethods(obj)
-{
-    return Object.getOwnPropertyNames(obj)
-        .filter(function(prop) {
-            return typeof obj[prop] == 'function';
-        });
 }
 
 module.exports.test = gestionServer;

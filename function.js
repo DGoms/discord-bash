@@ -1,5 +1,3 @@
-
-
 const _ = require("lodash")
 const MyClient = require('./MyClient').MyClient;
 const inquirer = require('inquirer');
@@ -67,7 +65,7 @@ function sendMessage(pathFile)
 		{
 			loggedString += "send message from sendMessage : " + answer.message
 		}
-		log.sendLog(loggedString).then(() =>
+		log.sendLog(myClient.client.user.username , loggedString).then(() =>
 			{
 				endProcess()
 			}).catch(()=>
@@ -80,7 +78,7 @@ function sendMessage(pathFile)
 
 function msgToManyChan(msg, withCommand, path)
 {
-
+	let myClient = MyClient.getInstance();
 	myClient.onReady().then(async() =>
 		{
 			let file = await myClient.createAttachement(path);
@@ -188,7 +186,7 @@ function msgToManyChan(msg, withCommand, path)
 				loggedString += "sendMessage from msgtomanychan : " + msg
 			}
 
-			log.sendLog(loggedString).then(() =>
+			log.sendLog(myClient.client.user.username , loggedString).then(() =>
 			{
 
 				endProcess()
@@ -207,6 +205,7 @@ function msgToManyChan(msg, withCommand, path)
 
 function getList(server)
 {
+	let myClient = MyClient.getInstance();
 	myClient.onReady().then(async() =>
 	{
 		if (server == undefined || server == true) // no server name in user input
@@ -255,7 +254,7 @@ function getList(server)
 					}
 				})
 			})
-			log.sendLog("Asked list ").then(() =>
+			log.sendLog(myClient.client.user.username , "Asked list ").then(() =>
 			{
 				endProcess()
 			}).catch(()=>

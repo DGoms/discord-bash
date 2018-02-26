@@ -49,7 +49,7 @@ class bddCon
 		}
 	}
 
-	async addLog(msg)
+	async addLog(user , msg)
 	{
 		try
 		{
@@ -58,7 +58,7 @@ class bddCon
 				{
 					this.log.create(
 					{
-						name: process.env['node test'],
+						name: user,
 						action: msg
 					})
 				})
@@ -71,14 +71,14 @@ class bddCon
 
 
 }
- function sendLog(msg)
+ function sendLog(user , msg)
 {
 	let bdd = new bddCon()
 	if(bdd == false)
 	{
 		throw new error(0)
 	}
-	return bdd.addLog(msg)
+	return bdd.addLog(user , msg)
 	
 	
 
