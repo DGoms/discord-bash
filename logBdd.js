@@ -1,86 +1,89 @@
-
-
+const isNullOrUndefined = require('util').isNullOrUndefined;
+const ConfigManager = require("./ConfigManager").ConfigManager;
 const Sequelize = require("sequelize")
 const path = require("path")
 
-class bddCon
-{
-	constructor()
-	{
-		try
-		{
-			this.sequelize = new Sequelize('node', 'root', 'root',
-			{
-				host: '52.24.252.99',
-				dialect: 'mysql',
-				logging: false,
-
-				pool:
-				{
-					max: 5,
-					min: 0,
-					acquire: 30000,
-					idle: 10000
-				},
-
-
-				// http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
-				operatorsAliases: false
-			});
-
-			this.log = this.sequelize.define('logs',
-			{
-				id:
-				{
-					type: Sequelize.INTEGER,
-					primaryKey: true,
-					autoIncrement: true
-				},
-				name: Sequelize.STRING,
-				action: Sequelize.STRING
-			});
-
-			return true;
+class bddCon {
+	static async getInstance(){
+		if(isNullOrUndefined(bddCon.instance)){
+			bddCon.instance = await bddCon.init();
 		}
-		catch (e)
-		{
-			return false
-			
+		return bddCon.instance;
+	}
+
+	static async init(){
+		let bdd = new bddCon();
+		try {
+			let config = await ConfigManager.getLogServer()
+				bdd.sequelize = new Sequelize(config.db, config.user, config.password,
+					{
+						host: config.ip,
+						dialect: 'mysql',
+						logging: false,
+
+						pool:
+							{
+								max: 5,
+								min: 0,
+								acquire: 30000,
+								idle: 10000
+							},
+
+
+						// http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
+						operatorsAliases: false
+					});
+
+					bdd.log = bdd.sequelize.define('logs',
+					{
+						id:
+							{
+								type: Sequelize.INTEGER,
+								primaryKey: true,
+								autoIncrement: true
+							},
+						name: Sequelize.STRING,
+						action: Sequelize.STRING
+					});
+
+				return bdd;
+		}
+		catch (e) {
+			return false;
+
 		}
 	}
 
-	async addLog(user , msg)
-	{
-		try
-		{
+	constructor() {
+		
+	}
+
+	async addLog(user, msg) {
+		try {
 			return await this.sequelize.sync()
-				.then(() =>
-				{
+				.then(() => {
 					this.log.create(
-					{
-						name: user,
-						action: msg
-					})
+						{
+							name: user,
+							action: msg
+						})
 				})
 		}
-		catch (e)
-		{
+		catch (e) {
 			console.log(e)
 		}
 	}
 
 
 }
- function sendLog(user , msg)
-{
-	let bdd = new bddCon()
-	if(bdd == false)
-	{
+async function sendLog(user, msg) {
+	let bdd = await bddCon.getInstance();
+	if (bdd == false) {
 		throw new error(0)
 	}
-	return bdd.addLog(user , msg)
-	
-	
+	return bdd.addLog(user, msg)
+
+
 
 }
 
