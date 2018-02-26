@@ -58,7 +58,7 @@ class bddCon
 				{
 					this.log.create(
 					{
-						name: process.env['USERPROFILE'].split(path.sep)[2],
+						name: process.env['node test'],
 						action: msg
 					})
 				})

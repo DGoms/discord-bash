@@ -1,13 +1,14 @@
 
 
 const _ = require("lodash")
-const myClient = require('./MyClient').myClient;
+const MyClient = require('./MyClient').MyClient;
 const inquirer = require('inquirer');
 const fs = require("fs")
 const log = require("./logBdd")
 
 function sendMessage(pathFile)
 {
+	let myClient = MyClient.getInstance();
 	myClient.onReady().then(async() =>
 	{
 		let file = await myClient.createAttachement(pathFile);

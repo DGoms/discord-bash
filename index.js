@@ -2,13 +2,10 @@
 
 const program = require('commander')
 const theFunction = require("./function")
-const path = require("path")
-const fs = require("fs")
 const MyClient = require("./MyClient").MyClient;
-const tools = require('./tools');
 const test = require("./alexisTest")
 
-test.test()
+
 program
 	.version('1.0.0')
 	.option('-l --list [value]', "List all server and chan , optional parameter \"server\" to search only in this server case insensitive")
@@ -21,8 +18,24 @@ program
 	.option('--login', 'set the account to use')
 	.parse(process.argv)
 
-//startTestCommand();
+startTestCommand();
+
 async function startTestCommand() {
+	//if a --login option, do the login action fist
+	if(program.login){
+		if(await MyClient.login()){
+			console.log('You are logged');
+		}
+		else{
+			console.log('Login failed');
+			process.exit();
+		}
+
+		if(process.argv.length <= 3){
+			process.exit();
+		}
+	}
+
 	if (program.sendmessage && program.message != null && program.with != null) {
 		theFunction.msgToManyChan(program.message, program.with, program.file)
 	}
@@ -32,22 +45,20 @@ async function startTestCommand() {
 	else if (program.prompt) {
 		theFunction.sendMessage(program.file)
 	}
-	else if(program.login){
-		tools.login();
-	}
-	else if(program.token){
-		if(typeof program.token === "boolean"){
+	else if (program.token) {
+		if (typeof program.token === "boolean") {
 			console.log("No token passed");
-			process.exit();
+		}
+		else {
+			if (await MyClient.setToken(program.token)) {
+				console.log("Token setted !");
+			}
+			else {
+				console.log('Bad token !');
+			};
 		}
 
-		tools.setToken(program.token).then(()=>{
-			console.log("Token setted !");
-			process.exit();
-		}).catch((err)=>{
-			console.log(err);
-			process.exit();
-		});
+		process.exit();
 	}
 	else {
 		program.help();

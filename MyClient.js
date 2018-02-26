@@ -2,42 +2,28 @@
 const isNullOrUndefined = require('util').isNullOrUndefined;
 const discord = require('discord.js');
 const fs = require('fs')
-
-const pathProperties = __dirname+"/properties.properties"
+const inquirer = require('inquirer');
+const request = require('request');
+const ConfigManager = require('./ConfigManager').ConfigManager;
 
 class MyClient {
-	constructor() {
-		this.client = new discord.Client();
-		this.token = "";
+	static getInstance() {
+		if (isNullOrUndefined(MyClient.instance)) {
+			MyClient.instance = new MyClient();
+		}
 
-		this.getToken().then((token) => {
-			this.token = token;
-			this.client.login(this.token);
-		}).catch((err) =>{
-			process.exit();
-		});
+		return MyClient.instance;
 	}
 
-	getToken() {
-		return new Promise((resolve, reject) => {
-			fs.readFile(pathProperties, "utf8", (err, data) => {
-				if (err)
-				
-					reject(err);
+	constructor() {
+		this.client = new discord.Client();
 
-				try{
-					let token = null;
-					let list = data.trim().split(":");
-					token = list[1].trim();
-					resolve(token);
-				}
-				catch(err){
-					console.log("No token setted ! Please login with the option --login or --token" , err);
-					reject();
-				}
-			})
-		});
-
+		ConfigManager.getToken().then((token) => {
+			this.client.login(token).catch((err) => {
+				console.log("No token setted ! Please login with the option --login or --token", err);
+				process.exit();
+			});
+		})
 	}
 
 	onReady() {
@@ -80,12 +66,71 @@ class MyClient {
 			}
 		});
 	}
-	isAdmin()
-	{
+	isAdmin() {
 		return new discord.Permission(discord.Permissions.FLAGS.ADMINISTRATOR)
+	}
+
+	//Static
+
+	/** 
+	 * @returns {boolean} true | false if login successful or not
+	 */
+	static async login() {
+		let answers = await inquirer.prompt([
+			{
+				type: 'input',
+				message: 'Entrer votre email',
+				name: 'email'
+			},
+			{
+				type: 'password',
+				message: 'Entrer votre mot de pass',
+				name: 'password'
+			}
+		]);
+
+		let token = await MyClient.getTokenFromDiscord(answers.email, answers.password);
+
+		if (!isNullOrUndefined(token)) {
+			if (await ConfigManager.setToken(token)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get a token from Discord for this account
+	 * @param {string} email 
+	 * @param {string} password
+	 * @returns {Promise} The token or null if auth failed
+	 */
+	static getTokenFromDiscord(email, password) {
+		return new Promise((resolve, reject) => {
+			// Configure the request
+			var options = {
+				url: 'https://discordapp.com/api/v6/auth/login',
+				method: 'POST',
+				json: { 'email': email, 'password': password }
+			}
+
+			// Start the request
+			request(options, function (error, response, body) {
+				if (!error && response.statusCode == 200) {
+					console.log('Your token login: ' + body.token);
+					resolve(body.token);
+				}
+				else {
+					for (let key in body) {
+						console.log(body[key]);
+					}
+
+					resolve(null);
+				}
+			})
+		});
 	}
 }
 
 module.exports.MyClient = MyClient;
-module.exports.myClient = new MyClient();
-
