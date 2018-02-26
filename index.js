@@ -8,6 +8,7 @@ const MyClient = require("./MyClient").MyClient;
 const tools = require('./tools');
 const test = require("./alexisTest")
 
+test.test()
 program
 	.version('1.0.0')
 	.option('-l --list [value]', "List all server and chan , optional parameter \"server\" to search only in this server case insensitive")
@@ -20,7 +21,7 @@ program
 	.option('--login', 'set the account to use')
 	.parse(process.argv)
 
-startTestCommand();
+//startTestCommand();
 async function startTestCommand() {
 	if (program.sendmessage && program.message != null && program.with != null) {
 		theFunction.msgToManyChan(program.message, program.with, program.file)
