@@ -1,4 +1,5 @@
-const myClient = require('./MyClient').myClient;
+
+const MyClient = require('./MyClient').MyClient;
 const inquirer = require("inquirer")
 const discord = require("discord.js")
 const log = require("./logBdd")
@@ -13,6 +14,7 @@ let loggedAccount
 
 function gestionServer()
 {
+	let myClient = MyClient.getInstance()
 	myClient.onReady().then(async() =>
 	{
 		client = myClient.client
@@ -33,7 +35,6 @@ function gestionServer()
 */
 async function chooseServer()
 {
-<<<<<<< HEAD
 	let txt = "Listes des serveurs : "
 	let choice = []
 	await client.guilds.forEach((data) =>
@@ -72,45 +73,6 @@ async function chooseServer()
 * Dont call this function without calling chooseServer first !
 */
 async function chooseWhatToHandle() 
-=======
-    let txt = "Listes des serveurs : "
-    let choice = []
-    await client.guilds.forEach((data)=>
-    {
-        if( data.ownerID  == loggedAccount.id )
-        {
-            choice.push({
-                name: data.name,
-                value:data
-            })
-        }
-    })
-        if(choice.length == 0)
-        {
-        console.log("Il n'y a aucun serveur ou vous possèdez les droits suffisants pour effectuer les actions proposé")
-        endProcess()
-        }
-        else
-        {
-            await ask([{
-                type: "list",
-                message: txt,
-                name: "selectServer",
-                choices : choice
-            }])
-        
-            .then((chanSelected)=>
-            {
-                objActualServer.server = chanSelected.selectServer
-                chooseWhatToHandle(chanSelected.selectServer)
-            
-            }).catch((e)=>{console.log(e)})
-        }
-}
-
-
-async function chooseWhatToHandle() // this function take a server as parameter and return what the user whant to do (user management , or channel management)
->>>>>>> 3a34b1bfab72a976937e492acc2622c94aa9c36f
 {
 
 	let txt = "Que voulez vous gèrer ? : "
@@ -366,7 +328,6 @@ async function doDeleteChannel(channel)
 */
 async function manageUser()
 {
-<<<<<<< HEAD
 	let server = objActualServer.server
 	let txt = "Choissisez la personne que vous souhaitez manager : "
 
@@ -406,46 +367,6 @@ async function manageUser()
 	{
 		manageSingleUser(data.selectedUser)
 	}
-=======
-    let server = objActualServer.server
-    let txt = "Choissisez le membres que vous souhaitez manager : "
-
-    let choice = [{
-        name:"Retournez au menu précédent",
-        value:-1
-    }]
-    choice.push(returnObjectLeave())
-    server.members.forEach((usr)=>
-    {
-        let actualUser = usr.user
-        choice.unshift({
-            name: actualUser.username,
-            value:actualUser
-        })   
-    })
-    
-    await ask({
-        type:"list",
-        name:"selectedUser",
-        message:txt,
-        choices: choice,
-    }).then((data)=>
-    {
-        if(data.selectedUser == -1)
-        {
-            chooseWhatToHandle(data)
-        }
-        else if(data.selectedUser == -2)
-        {
-            endProcess()
-        }
-        else
-        {
-            manageSingleUser(data.selectedUser)
-        }
-        
-    })
->>>>>>> 3a34b1bfab72a976937e492acc2622c94aa9c36f
 
 }
 
@@ -456,7 +377,6 @@ async function manageUser()
 
 async function manageSingleUser(user)
 {
-<<<<<<< HEAD
     let choice = 
     [
 	{
@@ -507,61 +427,6 @@ async function manageSingleUser(user)
 		addRights(user)
 	}
 
-=======
-    let choice = [
-        {
-            
-        },
-        {
-            name: "Bannir",
-            value:"ban"    
-        },
-        {
-            name: "Révoquer des droits",
-            value:"revokRight"    
-        },
-        {
-            name: "Ajouter des droits",
-            value:"addRight"    
-        },
-        {
-            name:"Retournez à la liste des membres.",
-            value:-1
-        }
-    ]
-    choice.push(returnObjectLeave())
-
-    await ask(
-        {
-            message:"Choissisez une action pour l'utilisateur : " + user.username,
-            type:"list",
-            choices:choice,
-            name:"selectedChoices"
-        }
-    ).then((data)=>
-    {
-        if(data.selectedChoices == -1)
-        {
-            manageUser()
-        }
-        else if(data.selectedChoices == -2)
-        {
-            endProcess()
-        }
-        else if(data.selectedChoices == "ban")
-        {
-            banUsr(user)
-        }
-        else if(data.selectedChoices == "revokRight")
-        {
-            revokRights(user)
-        }
-        else if(data.selectedChoices == "addRight")
-        {
-            //todo add rights
-        }
-    })
->>>>>>> 3a34b1bfab72a976937e492acc2622c94aa9c36f
 }
 
 /*-------------------------- Function to add right to user ------------------------------------------------*/
@@ -762,12 +627,7 @@ async function doRevokRighs(user, role)
                 }
                 else
                 {
-<<<<<<< HEAD
                     log.sendLog(loggedAccount.username, "Suppression d'un Rôle pour l'utilisateur : " + user.nickname)
-=======
-                    doRevokRighs(member , answer.answer)
-                    manageSingleUser(user)
->>>>>>> 3a34b1bfab72a976937e492acc2622c94aa9c36f
                 }
             })
         })
@@ -790,28 +650,11 @@ async function doRevokRighs(user, role)
 
 async function getRolebYiD(id)
 {
-<<<<<<< HEAD
 
 	return role = objActualServer.server.roles.find((roles) =>
 	{
 		return roles.id == id
 	})
-=======
-    return role = objActualServer.server.roles.find((roles)=>
-    {
-        return roles.id == id
-    })
-    return await role
-    
-        
-}
-async function doRevokRighs(user , role)
-{
-    user.removeRole(role).then(()=>
-    {
-        log.sendLog(loggedAccount.username , "Suppression du Rôle : " + role + " Pour l'utilisateur : " + user.nickname )
-    })
->>>>>>> 3a34b1bfab72a976937e492acc2622c94aa9c36f
 }
  /*
  * @param obj : object with the parameter for inquirer
@@ -848,18 +691,11 @@ function endProcess()
 */
 class actualServer
 {
-<<<<<<< HEAD
 	constructor()
 	{
 		this.server = null
 	}
-=======
-    constructor()
-    {
-        this.server = null
-    }
->>>>>>> 3a34b1bfab72a976937e492acc2622c94aa9c36f
 }
 
 
-module.exports.test = gestionServer
+module.exports.administate = gestionServer

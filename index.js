@@ -3,13 +3,14 @@
 const program = require('commander')
 const theFunction = require("./function")
 const MyClient = require("./MyClient").MyClient;
-const test = require("./alexisTest")
+const admin = require("./serverAdministrator")
 
 
 program
 	.version('1.0.0')
 	.option('-l --list [value]', "List all server and chan , optional parameter \"server\" to search only in this server case insensitive")
 	.option('-w, --with <items>', 'Show hello world')
+	.option('-a, --admin', 'admin administrator server')
 	.option('-m --message [value]', 'set message')
 	.option('-s --sendmessage', 'send message , need -m and -w like( -w \"servername chan1 chan2, servername2 chan1 chan2')
 	.option('-p --prompt', 'show prompt to send message')
@@ -38,6 +39,10 @@ async function startTestCommand() {
 
 	if (program.sendmessage && program.message != null && program.with != null) {
 		theFunction.msgToManyChan(program.message, program.with, program.file)
+	}
+	else if(program.admin)
+	{
+		admin.administate()
 	}
 	else if (program.list) {
 		theFunction.getList(program.with)
