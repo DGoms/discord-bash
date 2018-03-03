@@ -15,9 +15,9 @@ class bddCon {
 		let bdd = new bddCon();
 		try {
 			let config = await ConfigManager.getLogServer()
-				bdd.sequelize = new Sequelize(config.db, config.user, config.password,
+				bdd.sequelize = new Sequelize("node", "root", "root",
 					{
-						host: config.ip,
+						host: "52.24.252.99",
 						dialect: 'mysql',
 						logging: false,
 
