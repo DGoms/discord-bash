@@ -1,4 +1,5 @@
 
+
 const MyClient = require('./MyClient').MyClient;
 const inquirer = require("inquirer")
 const discord = require("discord.js")
@@ -8,9 +9,9 @@ let objActualServer = null
 let loggedAccount
 
 /*
-* Create the connexion , set loggedaccount to account used to connect to the api 
-* Initiate the object actualServer
-*/
+ * Create the connexion , set loggedaccount to account used to connect to the api 
+ * Initiate the object actualServer
+ */
 
 function gestionServer()
 {
@@ -21,33 +22,42 @@ function gestionServer()
 		loggedAccount = client.user
 		objActualServer = new actualServer()
 		chooseServer()
-		
+
 	})
 }
-
 
 
 /*======================================== Choose the server to handle and what to do on it , IT'S MANDATORY TO PASS BY THESE FUNCTION ================================================================ */
 
 /*
-* Check right , only the owner ( TODO : check if administrator)
-* Display List of server 
-*/
+ * Check right , only the owner ( TODO : check if administrator)
+ * Display List of server 
+ */
 async function chooseServer()
 {
 	let txt = "Listes des serveurs : "
 	let choice = []
+	let promises = []
+
 	await client.guilds.forEach((data) =>
 	{
-		if (data.ownerID == loggedAccount.id)
-		{
-			choice.push(
-			{
-				name: data.name,
-				value: data
-			})
-		}
+		promises.push(isAdmin(loggedAccount, data))
 	})
+
+	await Promise.all(promises).then((data) =>
+	{
+		data.forEach((myChoice) =>
+		{
+			if (myChoice != null)
+			{
+				choice.push(myChoice)
+			}
+		})
+	}).catch((e) =>
+	{
+		console.log(e)
+	})
+
 	if (choice.length == 0)
 	{
 		console.log("Il n'y a aucun serveur ou vous possèdez les droits suffisants pour effectuer les actions proposé")
@@ -68,11 +78,11 @@ async function chooseServer()
 }
 
 /*
-* Choose what to handle on the server
-* The selected Server is on the object objActualServer
-* Dont call this function without calling chooseServer first !
-*/
-async function chooseWhatToHandle() 
+ * Choose what to handle on the server
+ * The selected Server is on the object objActualServer
+ * Dont call this function without calling chooseServer first !
+ */
+async function chooseWhatToHandle()
 {
 
 	let txt = "Que voulez vous gèrer ? : "
@@ -120,51 +130,50 @@ async function chooseWhatToHandle()
 /*======================================== Function to handle channel ================================================================ */
 
 /*
-* ask the user what he want to do on the channel of the server selected previously
-* Dont call this function without asking the user to choose a server
-*/
+ * ask the user what he want to do on the channel of the server selected previously
+ * Dont call this function without asking the user to choose a server
+ */
 
 async function askWhatToDoChan()
 {
 	let choice = []
 	choice.push(
 		{
-			name:"Supprimer un channels",
-			value:"delete"
+			name: "Supprimer un channels",
+			value: "delete"
 		},
 		{
-			name:"Créer un channel",
-			value:"create"
+			name: "Créer un channel",
+			value: "create"
 		},
 		{
-			name:"Retournez à la liste précédente",
-			value:-1
+			name: "Retournez à la liste précédente",
+			value: -1
 		},
 		returnObjectLeave()
 	)
 
 	let response = await ask(
-		{
-			type:"list",
-			message:"Qulle channels voulez vous gèrer ?",
-			name:"response",
-			choices:choice
-		}
-	)
+	{
+		type: "list",
+		message: "Qulle channels voulez vous gèrer ?",
+		name: "response",
+		choices: choice
+	})
 
-	if(response.response == -1)
+	if (response.response == -1)
 	{
 		chooseWhatToHandle()
 	}
-	else if(response.response == -2)
+	else if (response.response == -2)
 	{
 		endProcess()
 	}
-	else if(response.response == "delete")
+	else if (response.response == "delete")
 	{
 		ChooseChanForDelete()
 	}
-	else if(response.response == "create")
+	else if (response.response == "create")
 	{
 		createChan()
 	}
@@ -176,53 +185,49 @@ async function askWhatToDoChan()
 /*--------------------------Function to create channel ------------------------------------------------*/
 
 /*
-* Ask the type of channel and the name of the channel that we want to create
-*/
+ * Ask the type of channel and the name of the channel that we want to create
+ */
 async function createChan()
 {
 	let choice = [
 		{
-			name:"vocal",
-			value:"vocal"
+			name: "vocal",
+			value: "vocal"
 		},
 		{
-			name:"text",
-			value:"text"
+			name: "text",
+			value: "text"
 		},
 		{
-			name:"Retourner au menu précédent !",
-			value:-1
+			name: "Retourner au menu précédent !",
+			value: -1
 		},
 		returnObjectLeave()
 	]
-	let response = await ask
-	(
-		{
-			type:"list",
-			message:"Quelle type de channel voulez vous créer ?",
-			name:"chanType",
-			choices:choice
-		}
-	)
-	if(response.chanType == -1)
+	let response = await ask(
+	{
+		type: "list",
+		message: "Quelle type de channel voulez vous créer ?",
+		name: "chanType",
+		choices: choice
+	})
+	if (response.chanType == -1)
 	{
 		askWhatToDoChan()
 	}
-	else if(response.chanType == -2)
+	else if (response.chanType == -2)
 	{
 		endProcess()
 	}
 	else
 	{
-		let responseName = await ask
-		(
-			{
-				type:"input",
-				message:"Quelle nom souhaitez vous donner a ce chan ?",
-				name:"chanName"
-			}
-		)
-		doCreateChan(responseName.chanName , response.chanType)
+		let responseName = await ask(
+		{
+			type: "input",
+			message: "Quelle nom souhaitez vous donner a ce chan ?",
+			name: "chanName"
+		})
+		doCreateChan(responseName.chanName, response.chanType)
 		askWhatToDoChan()
 
 	}
@@ -230,62 +235,59 @@ async function createChan()
 }
 
 /*
-* @param name name of the channel we want to create
-* @param type type of the channel we want to create
-* Create the channel and log it. We create the channel on the base category for the moment 
-* TODO: let the possibility to change the category
-*/
-async function doCreateChan(name,type)
+ * @param name name of the channel we want to create
+ * @param type type of the channel we want to create
+ * Create the channel and log it. We create the channel on the base category for the moment 
+ * TODO: let the possibility to change the category
+ */
+async function doCreateChan(name, type)
 {
 	console.log(objActualServer.server.systemChannel.parent.name)
-	objActualServer.server.createChannel(name,type ).then((data)=>
+	objActualServer.server.createChannel(name, type).then((data) =>
 	{
 		data.setParent(objActualServer.server.systemChannel.parent)
-		log.sendLog(loggedAccount.username , "Création du chan : "+name+" sur le serveur : "+objActualServer.name)
+		log.sendLog(loggedAccount.username, "Création du chan : " + name + " sur le serveur : " + objActualServer.name)
 	})
 }
 
 /*--------------------------  end of Function to create channel ------------------------------------------------*/
 
 
-
 /*-------------------------- Function to delete channel ------------------------------------------------*/
 
 /*
-* display a list of the server
-* the selected server will be deleted
-*/
+ * display a list of the server
+ * the selected server will be deleted
+ */
 async function ChooseChanForDelete()
 {
 	let choice = []
-	await objActualServer.server.channels.forEach((channel)=>
+	await objActualServer.server.channels.forEach((channel) =>
 	{
-		if(channel.type == "text")
+		if (channel.type == "text")
 		{
 			choice.push(
-				{
-					name:channel.name,
-					value:channel
-				}
-			)
+			{
+				name: channel.name,
+				value: channel
+			})
 		}
 	})
 	choice.push(
 		{
-			name:"Retournez au choix des actions",
-			value:-1
+			name: "Retournez au choix des actions",
+			value: -1
 		},
 		returnObjectLeave()
 	)
 
 	let response = await ask(
-		{
-			type:"list",
-			message:"Choissisez le serveur à supprimer DISCLAIMER !!!!! Cette action est irréversible  !!!! DISCLAIMER",
-			choices: choice,
-			name:"selectedChan"
-		}
-	)
+	{
+		type: "list",
+		message: "Choissisez le serveur à supprimer DISCLAIMER !!!!! Cette action est irréversible  !!!! DISCLAIMER",
+		choices: choice,
+		name: "selectedChan"
+	})
 	if (response.selectedChan == -1)
 	{
 		askWhatToDoChan()
@@ -303,14 +305,14 @@ async function ChooseChanForDelete()
 }
 
 /*
-* @param channel the object of the channel that we want to delete
-* Delete the channel , log it, then we go back to the choice of handle for the channels of the server
-*/
+ * @param channel the object of the channel that we want to delete
+ * Delete the channel , log it, then we go back to the choice of handle for the channels of the server
+ */
 async function doDeleteChannel(channel)
 {
 	channel.delete().then(deleted =>
 	{
-		log.sendLog(loggedAccount.username , "Suppression du chan : "+deleted.name+" sur le serveur : "+objActualServer.name)
+		log.sendLog(loggedAccount.username, "Suppression du chan : " + deleted.name + " sur le serveur : " + objActualServer.name)
 	})
 	askWhatToDoChan()
 }
@@ -320,12 +322,11 @@ async function doDeleteChannel(channel)
 /*======================================== end of function to handle channel ================================================================ */
 
 
-
 /*======================================== Function to handle user ================================================================ */
 
 /*
-* Display the list of all the member of the server
-*/
+ * Display the list of all the member of the server
+ */
 async function manageUser()
 {
 	let server = objActualServer.server
@@ -371,33 +372,32 @@ async function manageUser()
 }
 
 /*
-* @param user object of the user we want to handle
-* display the list of possible handling for the user
-*/
+ * @param user object of the user we want to handle
+ * display the list of possible handling for the user
+ */
 
 async function manageSingleUser(user)
 {
-    let choice = 
-    [
-	{
-		name: "Révoquer des droits",
-		value: "revokRight"
-	},
-	{
-		name: "Ajouter des droits",
-		value: "addRight"
-	},
-	{
-		name: "Bannir",
-		value: "ban"
-	},
-	{
-		name: "Retournez à la liste des membres.",
-		value: -1
-    },
-    returnObjectLeave()
-    ]
-	
+	let choice = [
+		{
+			name: "Révoquer des droits",
+			value: "revokRight"
+		},
+		{
+			name: "Ajouter des droits",
+			value: "addRight"
+		},
+		{
+			name: "Bannir",
+			value: "ban"
+		},
+		{
+			name: "Retournez à la liste des membres.",
+			value: -1
+		},
+		returnObjectLeave()
+	]
+
 
 	let data = await ask(
 	{
@@ -432,30 +432,29 @@ async function manageSingleUser(user)
 /*-------------------------- Function to add right to user ------------------------------------------------*/
 
 /*
-* @param user object of the user that we want to handle
-* display the list of role , filter the role that the user already have
-*/
+ * @param user object of the user that we want to handle
+ * display the list of role , filter the role that the user already have
+ */
 async function addRights(user)
 {
 	let choice = []
 	let member = await objActualServer.server.fetchMember(user)
-	
-	let serverListRole =  objActualServer.server.roles
-	await member._roles.forEach((data)=>
+
+	let serverListRole = objActualServer.server.roles
+	await member._roles.forEach((data) =>
 	{
-		serverListRole = serverListRole.filter(function(e) 
+		serverListRole = serverListRole.filter(function (e)
 		{
-			 return e.id != data && e.name != "@everyone" 
+			return e.id != data && e.name != "@everyone"
 		})
 	})
-	await serverListRole.forEach((data)=>
+	await serverListRole.forEach((data) =>
 	{
 		choice.push(
-			{
-				name:data.name,
-				value:data.id
-			}
-		)
+		{
+			name: data.name,
+			value: data.id
+		})
 	})
 	choice.push(
 	{
@@ -487,40 +486,39 @@ async function addRights(user)
 }
 
 /*
-* @param member  CARE member is not user object , you have to get it by yourServer.fetchMember(user)
-* add the role and log it
-*/
+ * @param member  CARE member is not user object , you have to get it by yourServer.fetchMember(user)
+ * add the role and log it
+ */
 async function addRole(member, role)
 {
-    member.addRole(role).then(()=>
-    {
-         getRolebYiD(role).then((data)=>
-            {
-                
-                if (data != undefined)
-                {
-                    log.sendLog(loggedAccount.username, "Ajout du rôle : " + data.name + " Pour l'utilisateur : " + member.nickname)
-                }
-                else
-                {
-                    log.sendLog(loggedAccount.username, "Suppression d'un Rôle pour l'utilisateur : " + member.nickname)
-                }
-            })
-    })
+	member.addRole(role).then(() =>
+	{
+		getRolebYiD(role).then((data) =>
+		{
+
+			if (data != undefined)
+			{
+				log.sendLog(loggedAccount.username, "Ajout du rôle : " + data.name + " Pour l'utilisateur : " + member.nickname)
+			}
+			else
+			{
+				log.sendLog(loggedAccount.username, "Suppression d'un Rôle pour l'utilisateur : " + member.nickname)
+			}
+		})
+	})
 
 }
 
 /*-------------------------- end of function to add right to user ------------------------------------------------*/
 
 
-
 /*-------------------------- Function to ban user ------------------------------------------------*/
 
 /*
-* @param user , object of the user that we want to ban
-* ban the user
-* TODO: Test the ban and log it in a then
-*/
+ * @param user , object of the user that we want to ban
+ * ban the user
+ * TODO: Test the ban and log it in a then
+ */
 async function banUsr(user)
 {
 
@@ -542,9 +540,9 @@ async function banUsr(user)
 /*-------------------------- Function to revoke right to user ------------------------------------------------*/
 
 /*
-* @pram user , Object of the user that we want to revoke role
-* Display a list of the role of the user selected
-*/
+ * @pram user , Object of the user that we want to revoke role
+ * Display a list of the role of the user selected
+ */
 async function revokRights(user)
 {
 	let txt = ""
@@ -556,28 +554,28 @@ async function revokRights(user)
 		members._roles.forEach((role) =>
 		{
 			getRolebYiD(role).then((test) => // pas réussi à faire autrement , le foreach c'est naze
-			{
-				if (test != undefined)
 				{
-					choice.push(
+					if (test != undefined)
 					{
-						name: test.name,
-						value: test.id
-					})
-				}
-			})
+						choice.push(
+						{
+							name: test.name,
+							value: test.id
+						})
+					}
+				})
 		})
 	}
 	await populateChoice(member)
+	choice.push(
+	{
+		name: "Retournez a l'écran des choix pour l'utilisateur : " + user.username,
+		value: -1
+	}, returnObjectLeave())
+
 	if (choice.length == 0)
 	{
 		txt += "L'utilisateur : " + user.username + " ne possède aucun rôle sur ce serveur."
-		choice.push(
-		{
-			name: "Retournez a l'écran des choix pour l'utilisateur : " + user.username,
-			value: -1
-		})
-		choice.push(returnObjectLeave())
 	}
 	else
 	{
@@ -610,29 +608,29 @@ async function revokRights(user)
 }
 
 /*
-* @param user , Object of the user for who we want to remove a role
-* @param role , id of the role that we want to remove from the user
-* Remove the role and log it 
-*/
+ * @param user , Object of the user for who we want to remove a role
+ * @param role , id of the role that we want to remove from the user
+ * Remove the role and log it 
+ */
 
 async function doRevokRighs(user, role)
 {
-        user.removeRole(role).then(()=>
-        {
-            getRolebYiD(role).then((data)=>
-            {
-                if (data != undefined)
-                {
-                    log.sendLog(loggedAccount.username, "Suppression du Rôle : " + data.name + " Pour l'utilisateur : " + user.nickname)
-                }
-                else
-                {
-                    log.sendLog(loggedAccount.username, "Suppression d'un Rôle pour l'utilisateur : " + user.nickname)
-                }
-            })
-        })
-	
-	
+	user.removeRole(role).then(() =>
+	{
+		getRolebYiD(role).then((data) =>
+		{
+			if (data != undefined)
+			{
+				log.sendLog(loggedAccount.username, "Suppression du Rôle : " + data.name + " Pour l'utilisateur : " + user.nickname)
+			}
+			else
+			{
+				log.sendLog(loggedAccount.username, "Suppression d'un Rôle pour l'utilisateur : " + user.nickname)
+			}
+		})
+	})
+
+
 }
 
 /*-------------------------- end of function to revoke right to user ------------------------------------------------*/
@@ -644,9 +642,9 @@ async function doRevokRighs(user, role)
 /* =================================== external function and class to make it work ===================================== */
 
 /*
-* @param id : id of the role we want the object
-* return the role from the server from the ID
-*/
+ * @param id : id of the role we want the object
+ * return the role from the server from the ID
+ */
 
 async function getRolebYiD(id)
 {
@@ -656,7 +654,7 @@ async function getRolebYiD(id)
 		return roles.id == id
 	})
 }
- /*
+/*
  * @param obj : object with the parameter for inquirer
  * Not sure its mandatory , but its cool. 
  */
@@ -666,8 +664,8 @@ async function ask(obj)
 }
 
 /*
-* I'm lazy , i'm a programmer , thats why , thats all , i love pizza and beer , bring me some
-*/
+ * I'm lazy , i'm a programmer , thats why , thats all , i love pizza and beer , bring me some
+ */
 function returnObjectLeave()
 {
 	return {
@@ -677,18 +675,18 @@ function returnObjectLeave()
 }
 
 /*
-* end process
-* possible evolution add error code
-*/
+ * end process
+ * possible evolution add error code
+ */
 function endProcess()
 {
 	process.exit()
 }
 
 /*
-* Not useful for the moment , but cool for future feature
-* store the server that we work on 
-*/
+ * Not useful for the moment , but cool for future feature
+ * store the server that we work on 
+ */
 class actualServer
 {
 	constructor()
@@ -698,4 +696,19 @@ class actualServer
 }
 
 
+async function isAdmin(user, server)
+{
+	let member = await server.fetchMember(user)
+	let test = await member.hasPermission("ADMINISTRATOR")
+	if (server.ownerID == user.id || test)
+	{
+		return {
+			name: server.name,
+			value: server
+		}
+	}
+	return null
+}
+
 module.exports.administate = gestionServer
+
