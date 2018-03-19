@@ -5,11 +5,70 @@ const fs = require("fs")
 const log = require("./logBdd")
 const Question = require('./Question');
 
-function sendMessage(pathFile) {
+async function sendMessage(pathFile) {
+	let myClient = MyClient.getInstance();
+	await myClient.onReady();
+	let file = await myClient.createAttachement(pathFile);
+
+	let questions = [
+		{
+			type: 'list',
+			message: 'Que voulez vous faire ?',
+			name: 'action',
+			choices: [
+				{
+					name: "Envoyer un message sur un ou des channel(s)",
+					value: 0
+				},
+				{
+					name: "Envoyer un message en privé",
+					value: 1
+				}
+			]
+		},
+		{
+			type: 'input',
+			message: 'Entrer votre message',
+			name: 'message'
+		}
+	]
+
+	let answer = await inquirer.prompt(questions);
+	let promise;
+
+	if (answer.action == 0) {
+		promise = sendMessageChannels(answer.message, file);
+	}
+	else if (answer.action == 1) {
+		promise = privateMessage(answer.message, file);
+	}
+	else {
+		endProcess();
+	}
+
+	promise.then(() => {
+		console.log('Messages sent !');
+	}).catch((err) => {
+		console.log(err);
+	}).then(() => { //Finally
+
+		let loggedString = "send message from sendMessage : " + answer.message
+
+		if (file != null) {
+			loggedString += " with a file"
+		}
+
+		log.sendLog(myClient.client.user.username, loggedString).catch(() => {
+			console.log("Une erreur s'est produite lors de l'envoi des logs.")
+		})
+
+		endProcess() 
+	});
+}
+
+function sendMessageChannels(message, file) {
 	let myClient = MyClient.getInstance();
 	myClient.onReady().then(async () => {
-		let file = await myClient.createAttachement(pathFile);
-
 		let channels = myClient.GetTextChannels();
 
 		let choices = [];
@@ -28,43 +87,36 @@ function sendMessage(pathFile) {
 				});
 		}
 
-		let answer = await inquirer.prompt([
-			{
+		let answer = await inquirer.prompt([{
 				type: 'checkbox',
 				message: 'Sélectionnez les channels auxquels envoyer le message',
 				name: 'selectedChannels',
 				choices: choices
-			},
-			{
-				type: 'input',
-				message: 'Entrer votre message',
-				name: 'message'
 			}]);
 
 		let promiseSend = [];
 		for (let chan of answer.selectedChannels) {
-			promiseSend.push(chan.send(answer.message, file));
+			promiseSend.push(chan.send(message, file));
 		}
 
-		Promise.all(promiseSend).then(() => {
-			console.log('Messages sent !');
-
-		});
-
-		let loggedString = ""
-		if (file != null) {
-			loggedString += "send message from sendMessage : " + answer.message + " with a file"
-		}
-		else {
-			loggedString += "send message from sendMessage : " + answer.message
-		}
-		log.sendLog(myClient.client.user.username, loggedString).then(() => {
-			endProcess()
-		}).catch(() => {
-			console.log("Une erreur s'est produite lors de l'envoi des logs.")
-			endProcess()
-		})
+		return Promise.all(promiseSend);
 	});
+}
+
+async function privateMessage(message, file) {
+	let myClient = MyClient.getInstance();
+	await myClient.onReady();
+
+	let server = await Question.chooseServer(myClient.getServers());
+
+	let users = await myClient.getUsersByServer(server);
+	let user = await Question.chooseUser(users);
+
+	if (user == null) {
+		endProcess();
+	}
+
+	return user.send(message, file);
 }
 
 function msgToManyChan(msg, withCommand, path) {
@@ -163,12 +215,7 @@ function msgToManyChan(msg, withCommand, path) {
 			console.log("Une erreur s'est produite lors de l'envoi des logs.")
 			endProcess()
 		})
-
-
-	}
-
-	)
-
+	})
 }
 
 function getList(server) {
@@ -222,41 +269,9 @@ function getList(server) {
 	})
 }
 
-async function privateMessage() {
-	let myClient = MyClient.getInstance();
-	await myClient.onReady();
-
-	let server = await Question.chooseServer(myClient.getServers());
-	console.log(server.name);
-
-	let users = await myClient.getUsersByServer(server);
-	let user = await Question.chooseUser(users);
-
-	if(user == null){
-		endProcess();
-	}
-	
-	let answer = await inquirer.prompt([
-		{
-			type: 'input',
-			message: 'Entrer votre message',
-			name: 'message'
-		}]
-	);
-
-	user.send(answer.message).then(() => {
-		console.log('Messages sent !');
-	}).catch((err) => {
-		console.log(err);
-	})
-	.then(() => {endProcess()});
-}
-
-
 module.exports.sendMessage = sendMessage;
 module.exports.msgToManyChan = msgToManyChan;
 module.exports.getList = getList;
-module.exports.privateMessage = privateMessage;
 
 // function/object that dont need to be exported 
 function deleteAccent(pString) {

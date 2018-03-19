@@ -2,76 +2,115 @@
 
 const program = require('commander')
 const theFunction = require("./function")
-const MyClient = require("./MyClient").MyClient;
+const MyClient = require("./MyClient");
 const admin = require("./serverAdministrator")
 
 
 program
 	.version('1.0.0')
-	.option('-d, --direct', 'Direct message (private message to an user)')
-	.option('-l --list [value]', "List all server and chan , optional parameter \"server\" to search only in this server case insensitive")
-	.option('-w, --with <items>', 'Show hello world')
-	.option('-a, --admin', 'admin administrator server')
-	.option('-m --message [value]', 'set message')
-	.option('-s --sendmessage', 'send message , need -m and -w like( -w \"servername chan1 chan2, servername2 chan1 chan2')
-	.option('-p --prompt', 'show prompt to send message')
 	.option('-f --file [value]', 'attach file to the message (use with -p or -s)')
-	.option('--token [value]', 'set the token account to use')
 	.option('--login', 'set the account to use')
-	.parse(process.argv)
+	
 
-startTestCommand();
+program
+	.command('list [server]')
+	.description('List all server and chan , optional parameter \"server\" to search only in this server case insensitive')
+	.action((server, options) => {
+		theFunction.getList(server)
+	});
 
-async function startTestCommand() {
-	//if a --login option, do the login action fist
-	if(program.login){
-		if(await MyClient.login()){
-			console.log('You are logged');
+program
+	.command('send <server> <message>')
+	.description('send message to multiple server')
+	.action((server, message, options) => {
+		theFunction.msgToManyChan(message, server, program.file)
+	}).on('--help', () => {
+		console.log('  Examples:');
+		console.log();
+		console.log('    $ send \"servername chan1 chan2, servername2 chan1 chan2\" "Hello world"');
+		console.log();
+	});
+
+program
+	.command('message')
+	.description('send messages')
+	.action((options) => {
+		theFunction.sendMessage(program.file)
+	}).on('--help', () => {
+		console.log('  Examples:');
+		console.log();
+		console.log('    $ send \"servername chan1 chan2, servername2 chan1 chan2\" "Hello world"');
+		console.log();
+	});
+
+program
+	.command('private')
+	.description('Send private message to an user')
+	.action((options) => {
+		theFunction.privateMessage();
+	});
+
+program
+	.command('admin')
+	.description('admin administrator server')
+	.action((options) => {
+		admin.administate();
+	});
+
+program
+	.command('set-token <token>')
+	.description('set the token account to use')
+	.option('-c, --no-check', "disable token check")
+	.action(async (token, options) => {
+		if (await MyClient.setToken(token, options.check)) {
+			console.log("Token setted !");
 		}
-		else{
+		else {
+			console.log('Bad token !');
+		};
+
+		process.exit();
+	});
+
+program
+	.command('*')
+	.action((options) => {
+		console.log('toto');
+		program.help();
+	});
+
+checkNoArgs();
+
+program
+	.parseOptions(process.argv);
+
+startOptions();
+async function startOptions() {
+	//if a --login option, do the login action fist
+	if (program.login) {
+		if (await MyClient.login()) {
+			console.log('You are logged');
+			if (process.argv.length <= 3) {
+				process.exit();
+			}
+		}
+		else {
 			console.log('Login failed');
 			process.exit();
 		}
-
-		if(process.argv.length <= 3){
-			process.exit();
-		}
 	}
 
-	if (program.sendmessage && program.message != null && program.with != null) {
-		theFunction.msgToManyChan(program.message, program.with, program.file)
-	}
-	else if(program.admin)
-	{
-		admin.administate()
-	}
-	else if (program.list) {
-		theFunction.getList(program.with)
-	}
-	else if (program.prompt) {
-		theFunction.sendMessage(program.file)
-	}
-	else if(program.direct){
-		theFunction.privateMessage();
-	}
-	else if (program.token) {
-		if (typeof program.token === "boolean") {
-			console.log("No token passed");
-		}
-		else {
-			if (await MyClient.setToken(program.token)) {
-				console.log("Token setted !");
-			}
-			else {
-				console.log('Bad token !');
-			};
-		}
+	program.parse(process.argv);
+}
 
-		process.exit();
+function checkNoArgs(){
+	let index = 1;
+	if(process.argv0 == 'node'){
+		index++;
 	}
-	else {
+
+	if(process.argv[index] == undefined)
 		program.help();
-	}
 }
 
 

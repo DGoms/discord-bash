@@ -16,11 +16,12 @@ module.exports = class MyClient {
 	}
 
 	constructor() {
-		this.client = new discord.Client({syncGuilds: true});
+		this.ready = false;
+		this.client = new discord.Client({ syncGuilds: true });
 
 		ConfigManager.getToken().then((token) => {
 			this.client.login(token).catch((err) => {
-				console.log("No token setted ! Please login with the option --login or --token", err);
+				console.log("No token setted or Bad token ! Please login with the option --login or set-token");
 				process.exit();
 			});
 		});
@@ -29,34 +30,39 @@ module.exports = class MyClient {
 		// process.on("SIGINT", this.client.destroy);
 	}
 
-	onReady() {
+	async onReady() {
 		return new Promise((resolve, reject) => {
-			this.client.on('ready', () => {
-				console.log('Connected')
-				this.client.syncGuilds();
+			if (this.ready)
 				resolve();
-			});
+			else {
+				this.client.once('ready', () => {
+					console.log('Connected')
+					this.ready = true;
+					this.client.syncGuilds();
+					resolve();
+				});
+			}
 		});
 	}
 
-	getServers(){
+	getServers() {
 		let servList = [];
-		for(let item of this.client.guilds){
+		for (let item of this.client.guilds) {
 			servList.push(item[1]);
 		}
 		return servList;
 	}
 
-	async getUsersByServer(server){
+	async getUsersByServer(server) {
 		await server.fetchMembers();
 		let list = [];
 
-		for(let user of server.members){
+		for (let user of server.members) {
 			user = user[1].user;
-			if(!user.bot && user != this.client.user)
+			if (!user.bot && user != this.client.user)
 				list.push(user);
 		}
-		
+
 		return list;
 	}
 
@@ -116,13 +122,7 @@ module.exports = class MyClient {
 
 		let token = await MyClient.getTokenFromDiscord(answers.email, answers.password);
 
-		if (!isNullOrUndefined(token)) {
-			if (await ConfigManager.setToken(token)) {
-				return true;
-			}
-		}
-
-		return false;
+		return await MyClient.setToken(token);
 	}
 
 	/**
@@ -155,5 +155,25 @@ module.exports = class MyClient {
 				}
 			})
 		});
+	}
+
+	static async setToken(token, check = true) {
+		let ok = false;
+		try {
+			if (!isNullOrUndefined(token)) {
+				if (check) {
+					await new discord.Client().login(token);
+				}
+				if (await ConfigManager.setToken(token)) {
+					ok = true;
+				}
+			}
+		}
+		catch (err) {
+			console.log(err.message)
+		}
+		finally {
+			return ok;
+		}
 	}
 }
