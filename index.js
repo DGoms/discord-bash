@@ -8,6 +8,7 @@ const admin = require("./serverAdministrator")
 
 program
 	.version('1.0.0')
+	.option('-d, --direct', 'Direct message (private message to an user)')
 	.option('-l --list [value]', "List all server and chan , optional parameter \"server\" to search only in this server case insensitive")
 	.option('-w, --with <items>', 'Show hello world')
 	.option('-a, --admin', 'admin administrator server')
@@ -49,6 +50,9 @@ async function startTestCommand() {
 	}
 	else if (program.prompt) {
 		theFunction.sendMessage(program.file)
+	}
+	else if(program.direct){
+		theFunction.privateMessage();
 	}
 	else if (program.token) {
 		if (typeof program.token === "boolean") {

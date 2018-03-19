@@ -6,7 +6,7 @@ const inquirer = require('inquirer');
 const request = require('request');
 const ConfigManager = require('./ConfigManager').ConfigManager;
 
-class MyClient {
+module.exports = class MyClient {
 	static getInstance() {
 		if (isNullOrUndefined(MyClient.instance)) {
 			MyClient.instance = new MyClient();
@@ -16,23 +16,48 @@ class MyClient {
 	}
 
 	constructor() {
-		this.client = new discord.Client();
+		this.client = new discord.Client({syncGuilds: true});
 
 		ConfigManager.getToken().then((token) => {
 			this.client.login(token).catch((err) => {
 				console.log("No token setted ! Please login with the option --login or --token", err);
 				process.exit();
 			});
-		})
+		});
+
+		// process.on("exit", this.client.destroy);
+		// process.on("SIGINT", this.client.destroy);
 	}
 
 	onReady() {
 		return new Promise((resolve, reject) => {
 			this.client.on('ready', () => {
+				console.log('Connected')
 				this.client.syncGuilds();
 				resolve();
 			});
 		});
+	}
+
+	getServers(){
+		let servList = [];
+		for(let item of this.client.guilds){
+			servList.push(item[1]);
+		}
+		return servList;
+	}
+
+	async getUsersByServer(server){
+		await server.fetchMembers();
+		let list = [];
+
+		for(let user of server.members){
+			user = user[1].user;
+			if(!user.bot && user != this.client.user)
+				list.push(user);
+		}
+		
+		return list;
 	}
 
 	GetTextChannels() {
@@ -132,5 +157,3 @@ class MyClient {
 		});
 	}
 }
-
-module.exports.MyClient = MyClient;

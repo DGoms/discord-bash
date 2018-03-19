@@ -1,8 +1,7 @@
 
 
-const MyClient = require('./MyClient').MyClient;
+const MyClient = require('./MyClient');
 const inquirer = require("inquirer")
-const discord = require("discord.js")
 const log = require("./logBdd")
 let client = null
 let objActualServer = null
