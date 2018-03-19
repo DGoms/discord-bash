@@ -13,17 +13,18 @@ program
 	
 
 program
-	.command('list [server]')
-	.description('List all server and chan , optional parameter \"server\" to search only in this server case insensitive')
-	.action((server, options) => {
-		theFunction.getList(server)
+	.command('list')
+	.description('List all server and chan')
+	.option('-s, --server', "to search only in this server (case insensitive)")
+	.action((options) => {
+		theFunction.getList(options.server)
 	});
 
 program
-	.command('send <server> <message>')
-	.description('send message to multiple server')
-	.action((server, message, options) => {
-		theFunction.msgToManyChan(message, server, program.file)
+	.command('send <channels> <message>')
+	.description('send message to multiple channels')
+	.action((channels, message, options) => {
+		theFunction.msgToManyChan(message, channels, program.file)
 	}).on('--help', () => {
 		console.log('  Examples:');
 		console.log();
@@ -33,7 +34,7 @@ program
 
 program
 	.command('message')
-	.description('send messages')
+	.description('send messages to channels or user')
 	.action((options) => {
 		theFunction.sendMessage(program.file)
 	}).on('--help', () => {
@@ -41,13 +42,6 @@ program
 		console.log();
 		console.log('    $ send \"servername chan1 chan2, servername2 chan1 chan2\" "Hello world"');
 		console.log();
-	});
-
-program
-	.command('private')
-	.description('Send private message to an user')
-	.action((options) => {
-		theFunction.privateMessage();
 	});
 
 program
