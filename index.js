@@ -37,11 +37,6 @@ program
 	.description('send messages to channels or user')
 	.action((options) => {
 		theFunction.sendMessage(program.file)
-	}).on('--help', () => {
-		console.log('  Examples:');
-		console.log();
-		console.log('    $ send \"servername chan1 chan2, servername2 chan1 chan2\" "Hello world"');
-		console.log();
 	});
 
 program
