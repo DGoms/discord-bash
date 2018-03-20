@@ -69,7 +69,6 @@ program
 program
 	.command('*')
 	.action((options) => {
-		console.log('toto');
 		program.help();
 	});
 

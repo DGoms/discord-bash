@@ -3,19 +3,6 @@ const MyClient = require('./MyClient');
 const inquirer = require("inquirer")
 
 module.exports = class Question {
-//     static async getInstance() {
-//         if (isNullOrUndefined(Question.instance)) {
-//             Question.instance = new Question();
-//         }
-// // console.log('toto');
-// //         await Question.instance.client.onReady();
-// //         console.log('toto 2')
-//         return Question.instance;
-//     }
-
-//     constructor() {
-//         this.client = MyClient.getInstance();
-//     }
 
     /**
      * Ask the user, wich server he want
