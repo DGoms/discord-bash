@@ -37,16 +37,16 @@ async function sendMessage(pathFile) {
 	let promise;
 
 	if (answer.action == 0) {
-		promise = sendMessageChannels(answer.message, file);
+		promise = await sendMessageChannels(answer.message, file);
 	}
 	else if (answer.action == 1) {
-		promise = privateMessage(answer.message, file);
+		promise = await privateMessage(answer.message, file);
 	}
 	else {
 		endProcess();
 	}
 
-	promise.then(() => {
+	Promise.all(promise).then(() => {
 		console.log('Messages sent !');
 	}).catch((err) => {
 		console.log(err);
@@ -66,41 +66,39 @@ async function sendMessage(pathFile) {
 	});
 }
 
-function sendMessageChannels(message, file) {
+async function sendMessageChannels(message, file) {
 	let myClient = MyClient.getInstance();
-	myClient.onReady().then(async () => {
-		let channels = myClient.GetTextChannels();
+	await myClient.onReady();
 
-		let choices = [];
+	let channels = myClient.GetTextChannels();
 
-		let currentServer = null;
-		for (let chan of channels) {
-			if (chan.guild.id != currentServer) {
-				currentServer = chan.guild.id;
-				choices.push(new inquirer.Separator("Serveur : " + chan.guild.name));
-			}
-
-			choices.push(
-				{
-					name: chan.name,
-					value: chan
-				});
+	let choices = [];
+	let currentServer = null;
+	for (let chan of channels) {
+		if (chan.guild.id != currentServer) {
+			currentServer = chan.guild.id;
+			choices.push(new inquirer.Separator("Serveur : " + chan.guild.name));
 		}
 
-		let answer = await inquirer.prompt([{
-				type: 'checkbox',
-				message: 'Sélectionnez les channels auxquels envoyer le message',
-				name: 'selectedChannels',
-				choices: choices
-			}]);
+		choices.push({
+			name: chan.name,
+			value: chan
+		});
+	}
 
-		let promiseSend = [];
-		for (let chan of answer.selectedChannels) {
-			promiseSend.push(chan.send(message, file));
-		}
+	let answer = await inquirer.prompt([{
+			type: 'checkbox',
+			message: 'Sélectionnez les channels auxquels envoyer le message',
+			name: 'selectedChannels',
+			choices: choices
+		}]);
 
-		return Promise.all(promiseSend);
-	});
+	let promiseSend = [];
+	for (let chan of answer.selectedChannels) {
+		promiseSend.push(chan.send(message, file));
+	}
+
+	return promiseSend;
 }
 
 async function privateMessage(message, file) {
@@ -116,7 +114,7 @@ async function privateMessage(message, file) {
 		endProcess();
 	}
 
-	return user.send(message, file);
+	return [user.send(message, file)];
 }
 
 function msgToManyChan(msg, withCommand, path) {
